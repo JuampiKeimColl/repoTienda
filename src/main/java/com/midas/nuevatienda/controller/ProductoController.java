@@ -1,10 +1,8 @@
 package com.midas.nuevatienda.controller;
 
-import com.midas.nuevatienda.dto.ClienteDto;
 import com.midas.nuevatienda.exceptions.MiExceptions;
-import com.midas.nuevatienda.persistence.entity.Cliente;
-import com.midas.nuevatienda.persistence.entity.enums.Rol;
-import com.midas.nuevatienda.service.ClienteService;
+import com.midas.nuevatienda.persistence.entity.Producto;
+import com.midas.nuevatienda.service.ProductoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,21 +11,22 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/cliente")
-@Tag(name = "ClienteApi", description = "Api para crear tipo de usuario.")
+@RequestMapping("/producto")
+@Tag(name = "ProductoApi", description = "Api ABM de Producto.")
 @Slf4j
-public class ClienteController {
+public class ProductoController {
     @Autowired
-    ClienteService clienteService;
+    ProductoService productoService;
 
-    @PostMapping("/registroUser")
-    @Operation(summary = "Método para crear un USER.", responses = {
+    @PostMapping(path = "/crearProducto", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Método para crear un producto.", responses = {
             @ApiResponse(responseCode = "200", description = "OK", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = String.class))}),
             @ApiResponse(responseCode = "400", description = "Bad Request", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -36,15 +35,14 @@ public class ClienteController {
                     schema = @Schema(implementation = Error.class))}),
             @ApiResponse(responseCode = "500", description = "Generic Error", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = Error.class))})})
-    public Cliente crearClienteUser(@RequestParam String name, @RequestParam String email, @RequestParam String password,
-                                    @RequestParam String password2) throws MiExceptions {
-        log.info("Creando USER... " + name + " " + email);
-        log.error("Error al crear el USER.");
-        return clienteService.crearClienteUser(name, email, password, password2);
+    public Producto crearProducto(@RequestParam String name, @RequestParam String descripcion, @RequestParam Double precio,
+                                  @RequestParam Integer stock) throws MiExceptions {
+        log.info("Producto creado con éxito: " + name + " " + descripcion);
+        return productoService.crearProducto(name, descripcion, precio, stock);
     }
 
-    @PostMapping("/registroAdmin")
-    @Operation(summary = "Método para crear un ADMIN.", responses = {
+    @PutMapping("/editarProducto")
+    @Operation(summary = "Método para editar un producto.", responses = {
             @ApiResponse(responseCode = "200", description = "OK", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = String.class))}),
             @ApiResponse(responseCode = "400", description = "Bad Request", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -53,15 +51,14 @@ public class ClienteController {
                     schema = @Schema(implementation = Error.class))}),
             @ApiResponse(responseCode = "500", description = "Generic Error", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = Error.class))})})
-    public Cliente crearClienteAdmin(@RequestParam String name, @RequestParam String email, @RequestParam String password,
-                                     @RequestParam String password2) throws MiExceptions {
-        log.info("Creando ADMIN... " + name + " " + email);
-        log.error("Error al crear el ADMIN.");
-        return clienteService.crearClienteAdmin(name, email, password, password2);
+    public ResponseEntity<Void> editarProducto(@RequestParam Long productoId, @RequestParam String productoName, @RequestParam String descripcion, @RequestParam Double precio,
+                                               @RequestParam Integer stock){
+        productoService.modificarProducto(productoId, productoName, descripcion, precio, stock);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/login")
-    @Operation(summary = "Inicio de sesión.", responses = {
+    @DeleteMapping("/{productoId}")
+    @Operation(summary = "Método para eliminar un producto.", responses = {
             @ApiResponse(responseCode = "200", description = "OK", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = String.class))}),
             @ApiResponse(responseCode = "400", description = "Bad Request", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -70,18 +67,14 @@ public class ClienteController {
                     schema = @Schema(implementation = Error.class))}),
             @ApiResponse(responseCode = "500", description = "Generic Error", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = Error.class))})})
-    public Cliente login(@RequestParam(required = false) String email, String password){
-        if (email!=null){
-
-            log.error("Usuario o contraseña incorrectos: " + email + " " + password);
-
-        }
-        return clienteService.loginUsuario(email, password);
-
+    public ResponseEntity<Void> delete(@PathVariable("productoId") Long productoId) {
+        productoService.deleteById(productoId);
+        //Para indicar que la operación se completó con éxito pero no se devuelve contenido en la respuesta
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/listarUsuarios")
-    @Operation(summary = "Método para listar todos los usuarios.", responses = {
+    @GetMapping(path = "/listarProducto", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Método para listar productos.", responses = {
             @ApiResponse(responseCode = "200", description = "OK", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = String.class))}),
             @ApiResponse(responseCode = "400", description = "Bad Request", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -90,23 +83,8 @@ public class ClienteController {
                     schema = @Schema(implementation = Error.class))}),
             @ApiResponse(responseCode = "500", description = "Generic Error", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = Error.class))})})
-    public List<Cliente> listarUsuarios(){
-        return clienteService.listarUsuarios();
+    public List<Producto> listarProductos(){
+        return productoService.listarProductos();
     }
-
-    @GetMapping("/roles{rol}")
-    @Operation(summary = "Método para listar según rol.", responses = {
-            @ApiResponse(responseCode = "200", description = "OK", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = String.class))}),
-            @ApiResponse(responseCode = "400", description = "Bad Request", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = Error.class))}),
-            @ApiResponse(responseCode = "406", description = "Not Acceptable", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = Error.class))}),
-            @ApiResponse(responseCode = "500", description = "Generic Error", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = Error.class))})})
-    public List<Cliente> findByRol(@PathVariable("rol") Rol rol){
-        return clienteService.findByRol(rol);
-    }
-
 
 }
