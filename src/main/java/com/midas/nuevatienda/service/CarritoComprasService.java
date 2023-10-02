@@ -74,4 +74,33 @@ public class CarritoComprasService {
 
 //        return carritoComprasRepository.save(carrito);
     }
+
+    @Transactional
+    public CarritoCompras agregarProductoAlCarrito2(Long productoId, Long clienteId, Integer cantidad) throws MiExceptions {
+        Optional<CarritoCompras> carritoRta = carritoComprasRepository.buscarCarritoActivoPorIdDeUsuario(String.valueOf(clienteId));
+        CarritoCompras carrito;
+
+        if (carritoRta.isEmpty()) {
+            carrito = new CarritoCompras();
+        } else {
+            carrito = carritoRta.get();
+        }
+
+        Optional<Producto> productoRta = productoRepository.findById(productoId);
+
+        if (productoRta.isEmpty()) {
+            throw new MiExceptions("Producto no encontrado.", HttpStatus.NOT_FOUND);
+        }
+
+        Producto producto = productoRta.get();
+        producto.setCantidad(cantidad);
+
+        List<Producto> productos = new ArrayList<>();
+        productos.add(producto);
+
+        carrito.setProductos(productos);
+
+        return carritoComprasRepository.save(carrito);
+    }
+
 }
