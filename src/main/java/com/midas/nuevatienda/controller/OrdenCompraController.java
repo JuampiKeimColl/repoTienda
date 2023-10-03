@@ -34,14 +34,14 @@ public class OrdenCompraController {
                     schema = @Schema(implementation = Error.class))}),
             @ApiResponse(responseCode = "500", description = "Generic Error", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = Error.class))})})
-    public OrdenCompra crearOrden(@RequestBody CarritoCompras carritoCompras, String address) throws MiExceptions {
-        return ordenCompraService.crearOrden(carritoCompras, address);
+    public OrdenCompra crearOrden(@RequestBody Long carritoId, String address) throws MiExceptions {
+        return ordenCompraService.crearOrden(carritoId, address);
     }
 
     @GetMapping(path ="/listarOrden", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Método para listar Ordenes de Compra.", responses = {
             @ApiResponse(responseCode = "200", description = "OK", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = String.class))}),
+                    schema = @Schema(implementation = OrdenCompra.class))}),
             @ApiResponse(responseCode = "400", description = "Bad Request", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = Error.class))}),
             @ApiResponse(responseCode = "406", description = "Not Acceptable", content = {@Content(mediaType = MediaType.APPLICATION_JSON_VALUE,

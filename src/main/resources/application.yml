@@ -5,7 +5,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: a
     password: a
-#    jdbc:h2://localhost:3306/university
+
     url: "jdbc:h2:mem:nuevatienda;DB_CLOSE_ON_EXIT=FALSE"
   h2:
     console:

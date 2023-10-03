@@ -2,8 +2,10 @@ package com.midas.nuevatienda.service;
 
 import com.midas.nuevatienda.exceptions.MiExceptions;
 import com.midas.nuevatienda.persistence.entity.CarritoCompras;
+import com.midas.nuevatienda.persistence.entity.Cliente;
 import com.midas.nuevatienda.persistence.entity.OrdenCompra;
 import com.midas.nuevatienda.persistence.repository.CarritoComprasRepository;
+import com.midas.nuevatienda.persistence.repository.ClienteRepository;
 import com.midas.nuevatienda.persistence.repository.OrdenCompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,17 +21,27 @@ public class OrdenCompraService {
     OrdenCompraRepository ordenCompraRepository;
     @Autowired
     CarritoComprasRepository carritoComprasRepository;
-    @Transactional
-    public OrdenCompra crearOrden(CarritoCompras carritoCompras, String address) throws MiExceptions {
-        Optional<CarritoCompras> rta = carritoComprasRepository.findById(carritoCompras.getCarritoId());
+    @Autowired
+    ClienteRepository clienteRepository;
 
-        if (rta.isEmpty()){
+    @Transactional
+    public OrdenCompra crearOrden(Long carritoId, String address) throws MiExceptions {
+        Optional<CarritoCompras> rtaCarrito = carritoComprasRepository.findById(carritoId);
+        if (rtaCarrito.isEmpty()){
             throw new MiExceptions("El Carrito de Compras no existe o fue dado de baja.", HttpStatus.NOT_FOUND);
         }
         OrdenCompra ordenCompra = new OrdenCompra();
-        ordenCompra.setCarritoCompras(carritoCompras);
+        CarritoCompras carrito = rtaCarrito.get();
+        ordenCompra.setCarritoCompras(carrito);
         ordenCompra.setAddress(address);
-        ordenCompra.setCliente(carritoCompras.getCliente());
+
+        Optional<Cliente> rtaCliente = clienteRepository.findById(Long.valueOf(carrito.getCliente().getClienteId()));
+        if (rtaCliente.isEmpty()){
+            throw new MiExceptions("El Carrito de Compras no existe o fue dado de baja.", HttpStatus.NOT_FOUND);
+        }
+
+        Cliente cliente = rtaCliente.get();
+        ordenCompra.setCliente(cliente);
 
         return ordenCompraRepository.save(ordenCompra);
     }

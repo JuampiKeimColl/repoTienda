@@ -2,8 +2,10 @@ package com.midas.nuevatienda.service;
 
 import com.midas.nuevatienda.exceptions.MiExceptions;
 import com.midas.nuevatienda.persistence.entity.CarritoCompras;
+import com.midas.nuevatienda.persistence.entity.Cliente;
 import com.midas.nuevatienda.persistence.entity.Producto;
 import com.midas.nuevatienda.persistence.repository.CarritoComprasRepository;
+import com.midas.nuevatienda.persistence.repository.ClienteRepository;
 import com.midas.nuevatienda.persistence.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,14 +23,21 @@ public class CarritoComprasService {
     CarritoComprasRepository carritoComprasRepository;
     @Autowired
     ProductoRepository productoRepository;
+    @Autowired
+    ClienteRepository clienteRepository;
 
     @Transactional
     public CarritoCompras agregarProductoAlCarrito(Long productoId, Long clienteId, Integer cantidad) throws MiExceptions {
-        Optional<CarritoCompras> carritoRta = carritoComprasRepository
-                .findCarritoCliente(String.valueOf(clienteId));
+        Optional<CarritoCompras> carritoRta = carritoComprasRepository.findCarritoCliente(String.valueOf(clienteId));
+        Optional<Cliente> rtaCliente = clienteRepository.findById(clienteId);
+        if (rtaCliente.isEmpty()){
+            throw new MiExceptions("El Carrito de Compras no existe o fue dado de baja.", HttpStatus.NOT_FOUND);
+        }
+        Cliente cliente = rtaCliente.get();
 
         if (carritoRta.isEmpty()){
             CarritoCompras carrito =new CarritoCompras();
+            carrito.setCliente(cliente);
             Optional<Producto> productoRta  = productoRepository.findById(productoId);
 
             if (productoRta.isPresent()) {
@@ -54,10 +63,11 @@ public class CarritoComprasService {
             productos.add(producto); // Agrega el producto a la lista
 
             CarritoCompras carrito = carritoRta.get();
+            carrito.getCliente().setClienteId(String.valueOf(clienteId));
             carrito.setProductos(productos); // Establece la lista de productos en el carrito
             return carritoComprasRepository.save(carrito);
         }
-
+    }
 //        Optional<Producto> productoRta  = productoRepository.findById(productoId);
 //        if(productoRta.isPresent()){
 //            Producto producto = productoRta.get();
@@ -73,7 +83,7 @@ public class CarritoComprasService {
 
 
 //        return carritoComprasRepository.save(carrito);
-    }
+
 
     @Transactional
     public CarritoCompras agregarProductoAlCarrito2(Long productoId, Long clienteId, Integer cantidad) throws MiExceptions {
